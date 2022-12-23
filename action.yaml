@@ -1,5 +1,5 @@
 name: 'RelizaHub submit metadata'
-description: 'Submit Release metadata the release on RelizaHub'
+description: 'Submit Release metadata for a release on RelizaHub'
 branding:
   icon: 'info'
   color: 'green'
