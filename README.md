@@ -16,6 +16,7 @@ steps:
     reliza_api_key: <api-key-obtained-from-relizahub>
     image_full_name: <registry/owner/image>
     image_digest: <api-key-obtained-from-relizahub>
+    reliza_full_version: <version obtained on get-version step>
     reliza_build_start: <build start time recorded on get-version step>
     reliza_build_status: <complete|rejected>
 ```
@@ -28,5 +29,6 @@ The actions supports the following inputs:
 - `image_full_name`: Full name of the Docker image with registry prefix
 - `image_name`: Name of the image
 - `image_digest`: SHA 256 digest of the image artifact
+- `reliza_full_version`: Version obtained from RelizaHub for this release
 - `reliza_build_start`: Build start time
 - `reliza_build_status`: Build status - `complete` - if build succeded,  `rejected` - if build failed

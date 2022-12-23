@@ -19,6 +19,9 @@ inputs:
   reliza_build_start:
     description: "Build start time"
     required: true
+  reliza_full_version:
+    description: "Version obtained from RelizaHub for this release"
+    required: true
   reliza_build_status:
     description: "Build status - [complete | rejected]"
     required: true
@@ -47,7 +50,7 @@ runs:
           --commitmessage \"$(git log -1 --pretty='%s')\" \
           -i ${{ inputs.reliza_api_id }} -u ${{ inputs.reliza_api_url }} --vcsuri github.com/${{github.repository}} \
           --date $(git log -1 --date=iso-strict --pretty='%ad') \
-          -v $RLZ_FULL_VER " >> reliza_command
+          -v ${{ inputs.reliza_full_version }} " >> reliza_command
         echo -n "--artid ${{inputs.image_full_name}} " >> reliza_command
         echo -n "--artbuildid github${{github.action}}${{github.sha}} " >> reliza_command
         echo -n "--artbuilduri https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} " >> reliza_command
