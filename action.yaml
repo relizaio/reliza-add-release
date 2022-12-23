@@ -1,0 +1,75 @@
+name: 'RelizaHub submit metadata'
+description: 'Submit Release metadata the release on RelizaHub'
+branding:
+  icon: 'info'
+  color: 'green'
+inputs:
+  reliza_api_id:
+    description: "Reliza Hub API ID"
+    required: true
+  reliza_api_key:
+    description: "Reliza Hub API KEY"
+    required: true
+  image_full_name:
+    description: "Full name of the Docker image with registry prefix"
+    required: true
+  image_digest:
+    description: "SHA 256 digest of the image artifact"
+    required: true
+  reliza_build_start:
+    description: "Build start time"
+    required: true
+  reliza_build_status:
+    description: "Build status - [complete | rejected]"
+    required: true
+  reliza_api_url:
+    description: "Reliza Hub API URL"
+    required: false
+    default: 'https://app.relizahub.com'
+runs:
+  using: "composite"
+  steps:
+    - name: Instantiate Reliza status
+      shell: bash
+      run: echo "--status ${{inputs.reliza_build_status}} " > reliza_command
+    - name: Extract Last Release Commit And Prepare List Of Commits
+      shell: bash
+      run: |
+        last_commit=$(reliza-cli getlatestrelease -i ${{ inputs.reliza_api_id }} -k ${{ inputs.reliza_api_key }} -u ${{ inputs.reliza_api_url }} --branch ${{github.ref_name}} | jq -r ".sourceCodeEntryDetails.commit")
+        if [ ! -z "$last_commit" ]
+        then
+          echo -n "--commits $(git log $last_commit..${{github.sha}} --date=iso-strict --pretty='%H|||%ad|||%s' | base64 -w 0) " >> reliza_command
+        fi    
+    - name: Submit metadata to Reliza Hub
+      shell: bash
+      run: |
+        echo -n "-b ${{github.ref_name}} --vcstype git --commit ${{github.sha}} -k ${{ inputs.reliza_api_key }} \
+          --commitmessage \"$(git log -1 --pretty='%s')\" \
+          -i ${{ inputs.reliza_api_id }} -u ${{ inputs.reliza_api_url }} --vcsuri github.com/${{github.repository}} \
+          --date $(git log -1 --date=iso-strict --pretty='%ad') \
+          -v $RLZ_FULL_VER " >> reliza_command
+        echo -n "--artid ${{inputs.image_full_name}} " >> reliza_command
+        echo -n "--artbuildid github${{github.action}}${{github.sha}} " >> reliza_command
+        echo -n "--artbuilduri https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} " >> reliza_command
+        echo -n "--artcimeta GitHub Actions " >> reliza_command
+        echo -n "--arttype Docker " >> reliza_command
+        if [[ ${{inputs.image_digest}} != "" ]]
+        then
+          echo -n "--artdigests ${{inputs.image_digest}} " >> reliza_command
+        fi
+        echo -n "--datestart ${{inputs.reliza_build_start}} " >> reliza_command
+        echo -n "--dateend $(date -Iseconds) " >> reliza_command
+        # debug
+        cat reliza_command
+        # send data
+        echo reliza-cli addrelease $(cat reliza_command) > rlz_cmd_exec
+        eval $(cat rlz_cmd_exec)
+    - name: Fail build if reliza status is rejected
+      shell: bash
+      run: |
+        status_complete_check=$(cat reliza_command | grep 'status complete' | wc -l)
+        if [[ "$status_complete_check" != "1" ]]
+        then
+          echo "Failing build since Reliza build Status is rejected"
+          exit 1
+        fi
