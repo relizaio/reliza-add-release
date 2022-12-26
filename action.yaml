@@ -29,6 +29,13 @@ inputs:
     description: "Reliza Hub API URL"
     required: false
     default: 'https://app.relizahub.com'
+  artifact_type:
+    description: "Type of artifact created by this release [Docker, File]"
+    required: false
+    default: 'Docker'
+  commit_list:
+    description: "List of commits"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -45,10 +52,14 @@ runs:
         echo -n "--artbuildid github${{github.action}}${{github.sha}} " >> reliza_command
         echo -n "--artbuilduri https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} " >> reliza_command
         echo -n "--artcimeta GitHub Actions " >> reliza_command
-        echo -n "--arttype Docker " >> reliza_command
+        echo -n "--arttype ${{inputs.artifact_type}} " >> reliza_command
         if [[ ${{inputs.image_digest}} != "" ]]
         then
           echo -n "--artdigests ${{inputs.image_digest}} " >> reliza_command
+        fi
+        if [[ ${{inputs.commit_list}} != "" ]]
+        then
+          echo -n "--commits ${{inputs.commit_list}} " >> reliza_command
         fi
         echo -n "--datestart ${{inputs.reliza_build_start}} " >> reliza_command
         echo -n "--dateend $(date -Iseconds) " >> reliza_command

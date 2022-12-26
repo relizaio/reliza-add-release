@@ -32,3 +32,5 @@ The actions supports the following inputs:
 - `reliza_full_version`: Version obtained from RelizaHub for this release
 - `reliza_build_start`: Build start time
 - `reliza_build_status`: Build status - `complete` - if build succeded,  `rejected` - if build failed
+- `artifact_type`: Type of artifact created by this release [Docker, File] (Optional)
+- `commit_list`: List of commits (Optional)
