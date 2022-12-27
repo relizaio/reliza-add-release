@@ -57,7 +57,7 @@ runs:
         then
           echo -n "--artdigests ${{inputs.image_digest}} " >> reliza_command
         fi
-        if [[ ${{inputs.commit_list}} != "" ]]
+        if [[ ! -z ${{inputs.commit_list}} ]]
         then
           echo -n "--commits ${{inputs.commit_list}} " >> reliza_command
         fi
