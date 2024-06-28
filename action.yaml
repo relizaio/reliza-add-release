@@ -41,7 +41,7 @@ inputs:
     required: false
   enable_sbom:
     required: false
-    default: 'false'
+    default: 'true'
     description: Generates SBOM and stores it along with the artifact
 runs:
   using: "composite"
@@ -55,12 +55,6 @@ runs:
       uses: actions/setup-node@v4
       with:
         node-version: 22
-    - name: Generate SBOMs
-      if: ${{ inputs.enable_sbom == 'true' }}
-      uses: relizaio/reliza-sbom-action@master
-      with:
-        image_full_name: ${{inputs.image_full_name}}
-        image_digest: ${{inputs.image_digest}}
     - id: install-cdxgen
       if: ${{ inputs.enable_sbom == 'true' }}
       name: Install cdxgen cli
