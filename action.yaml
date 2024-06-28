@@ -39,15 +39,52 @@ inputs:
   reliza_project_id:
     description: "Project UUID for this release if org-wide key is used"
     required: false
+  enable_sbom:
+    required: false
+    default: 'false'
+    description: Generates SBOM and stores it along with the artifact
 runs:
   using: "composite"
   steps:
     - name: Instantiate Reliza status
       shell: bash
       run: echo "--status ${{inputs.reliza_build_status}} " > reliza_command
+    - id: setup-node-js
+      if: ${{ inputs.enable_sbom == 'true' }}
+      name: Setup Node JS
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: Generate SBOMs
+      if: ${{ inputs.enable_sbom == 'true' }}
+      uses: relizaio/reliza-sbom-action@master
+      with:
+        image_full_name: ${{inputs.image_full_name}}
+        image_digest: ${{inputs.image_digest}}
+    - id: install-cdxgen
+      if: ${{ inputs.enable_sbom == 'true' }}
+      name: Install cdxgen cli
+      shell: bash
+      run: npm install -g @cyclonedx/cdxgen
+    - id: check_path
+      name: Check Current path
+      shell: bash
+      run: |
+        echo pwd
     - name: Submit metadata to Reliza Hub
       shell: bash
       run: |
+        set -x
+        set -e
+        # Generate SBOMs if Enabled
+        if [[ ${{inputs.enable_sbom}} == 'true' ]]
+        then
+          echo "Generating SBOMs ... "
+          cdxgen ./ --type application --project-version ${{ inputs.reliza_full_version }} -o fs.cdx.bom.json
+          cdxgen ${{inputs.image_full_name}}@${{inputs.image_digest}} --type dockerfile --project-version ${{ inputs.reliza_full_version }} -o docker.cdx.bom.json
+          echo -n "--artboms container:docker.cdx.bom.json " >> reliza_command
+          echo -n "--fsbom fs.cdx.bom.json" >> reliza_command
+        fi
         echo -n "-b ${{github.ref_name}} -k ${{ inputs.reliza_api_key }} \
           -i ${{ inputs.reliza_api_id }} -u ${{ inputs.reliza_api_url }} \
           -v ${{ inputs.reliza_full_version }} " >> reliza_command
