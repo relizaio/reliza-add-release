@@ -77,7 +77,7 @@ runs:
           cdxgen ./ --type application --project-version ${{ inputs.reliza_full_version }} -o fs.cdx.bom.json
           cdxgen ${{inputs.image_full_name}}@${{inputs.image_digest}} --type dockerfile --project-version ${{ inputs.reliza_full_version }} -o docker.cdx.bom.json
           echo -n "--artboms container:docker.cdx.bom.json " >> reliza_command
-          echo -n "--fsbom fs.cdx.bom.json" >> reliza_command
+          echo -n "--fsbom fs.cdx.bom.json " >> reliza_command
         fi
         echo -n "-b ${{github.ref_name}} -k ${{ inputs.reliza_api_key }} \
           -i ${{ inputs.reliza_api_id }} -u ${{ inputs.reliza_api_url }} \
