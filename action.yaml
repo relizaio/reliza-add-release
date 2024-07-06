@@ -43,6 +43,16 @@ inputs:
     required: false
     default: 'true'
     description: Generates SBOM and stores it along with the artifact
+  registry_username:
+    description: "Username for image registry"
+    required: false
+  registry_password:
+    description: "Password for image registry"
+    required: false
+  registry_host:
+    description: "Host for image registry"
+    default: null
+    required: false
 runs:
   using: "composite"
   steps:
@@ -59,6 +69,19 @@ runs:
       name: Docker Test
       shell: bash
       run: docker info
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      if: ${{ inputs.registry_host == null }}
+      with:
+        username: ${{inputs.registry_username}}
+        password: ${{inputs.registry_password}}
+    - name: Login to Docker Registry
+      uses: docker/login-action@v3
+      if: ${{ inputs.registry_host != null }}
+      with:
+        registry: ${{inputs.registry_host}}
+        username: ${{inputs.registry_username}}
+        password: ${{inputs.registry_password}}
     - id: install-cdxgen
       if: ${{ inputs.enable_sbom == 'true' }}
       name: Install cdxgen cli
