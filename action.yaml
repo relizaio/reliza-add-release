@@ -84,8 +84,7 @@ runs:
       shell: bash
       run: |
         docker pull ${{inputs.image_full_name}}@${{inputs.image_digest}}
-        docker inspect ${{inputs.image_full_name}}@${{inputs.image_digest}}
-        docker save ${{inputs.image_full_name}}@${{inputs.image_digest}} > ${{inputs.image_full_name}}@${{inputs.image_digest}}.tar
+        docker save -o ${{inputs.image_full_name}}.${{ inputs.reliza_full_version }}.tar ${{inputs.image_full_name}}@${{inputs.image_digest}} 
     - id: install-cdxgen
       if: ${{ inputs.enable_sbom == 'true' }}
       name: Install cdxgen cli
@@ -106,7 +105,7 @@ runs:
         then
           echo "Generating SBOMs ... "
           cdxgen ./ --type application --project-version ${{ inputs.reliza_full_version }} -o fs.cdx.bom.json
-          cdxgen ${{inputs.image_full_name}}@${{inputs.image_digest}} --type dockerfile --project-version ${{ inputs.reliza_full_version }} -o docker.cdx.bom.json
+          cdxgen ${{inputs.image_full_name}}.${{ inputs.reliza_full_version }}.tar -t docker --project-version ${{ inputs.reliza_full_version }} -o docker.cdx.bom.json
           echo -n "--artboms container:docker.cdx.bom.json " >> reliza_command
           echo -n "--fsbom fs.cdx.bom.json " >> reliza_command
         fi
