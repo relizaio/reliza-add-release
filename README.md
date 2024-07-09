@@ -10,7 +10,7 @@ Submit Release metadata:
 
 ```yaml
 steps:
-- uses: relizaio/reliza-add-release@1.0
+- uses: relizaio/reliza-add-release@1.2
   with:
     reliza_api_id: <api-id-obtained-from-relizahub>
     reliza_api_key: <api-key-obtained-from-relizahub>
@@ -34,3 +34,9 @@ The actions supports the following inputs:
 - `reliza_build_status`: Build status - `complete` - if build succeded,  `rejected` - if build failed
 - `artifact_type`: Type of artifact created by this release [Docker, File] (Optional)
 - `commit_list`: List of commits (Optional)
+- `enable_sbom`: Enables SBOM generation using cdxgen (Optional)
+- `registry_username`: Username for the image registry. (Optional - needed for sbom generation)
+- `registry_password`: Password for the image registry. (Optional - needed for sbom generation)
+- `registry_host`: Image registry host. (Optional - needed for sbom generation)
+- `path`: Path to the relative to root of the repo (default is '.').
+ (Optional - needed for sbom generation)

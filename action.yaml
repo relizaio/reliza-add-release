@@ -41,7 +41,7 @@ inputs:
     required: false
   enable_sbom:
     required: false
-    default: 'true'
+    default: 'false'
     description: Generates SBOM and stores it along with the artifact
   registry_username:
     description: "Username for image registry"
@@ -109,7 +109,7 @@ runs:
         # Generate SBOMs if Enabled
         if [[ ${{inputs.enable_sbom}} == 'true' ]]
         then
-          cdxgen ./ -t js --type application --project-version ${{ inputs.reliza_full_version }} -o fs.cdx.bom.json
+          cdxgen ./ --project-version ${{ inputs.reliza_full_version }} -o fs.cdx.bom.json
           cdxgen image_clone_${{ inputs.reliza_full_version }}.tar -t docker --project-version ${{ inputs.reliza_full_version }} -o docker.cdx.bom.json
           echo -n "--artboms container:docker.cdx.bom.json " >> reliza_command
           echo -n "--fsbom fs.cdx.bom.json " >> reliza_command
