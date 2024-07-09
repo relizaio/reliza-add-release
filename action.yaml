@@ -53,6 +53,10 @@ inputs:
     description: "Host for image registry"
     default: null
     required: false
+  path:
+    description: "Path to the relative to root of the repo (default is '.')"
+    required: false
+    default: .
 runs:
   using: "composite"
   steps:
@@ -94,10 +98,11 @@ runs:
       name: Check Current path
       shell: bash
       run: |
-        echo pwd
+        pwd
     - name: Submit metadata to Reliza Hub
       shell: bash
       run: |
+        cd ${{ inputs.path }}
         set -x
         set -e
         # Generate SBOMs if Enabled
