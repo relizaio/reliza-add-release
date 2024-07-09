@@ -60,6 +60,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 200
     - name: Instantiate Reliza status
       shell: bash
       run: |
@@ -84,10 +88,6 @@ runs:
         registry: ${{inputs.registry_host}}
         username: ${{inputs.registry_username}}
         password: ${{inputs.registry_password}}
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 200
     - id: docker-test
       name: Docker Test
       shell: bash
