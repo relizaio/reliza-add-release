@@ -82,7 +82,10 @@ runs:
         registry: ${{inputs.registry_host}}
         username: ${{inputs.registry_username}}
         password: ${{inputs.registry_password}}
-
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 200
     - id: docker-test
       name: Docker Test
       shell: bash
@@ -100,6 +103,7 @@ runs:
       shell: bash
       run: |
         cd ${{ inputs.path }}
+        
         set -x
         set -e
         # Generate SBOMs if Enabled
