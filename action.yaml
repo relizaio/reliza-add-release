@@ -62,7 +62,9 @@ runs:
   steps:
     - name: Instantiate Reliza status
       shell: bash
-      run: echo "--status ${{inputs.reliza_build_status}} " > reliza_command
+      run: |
+        cd ${{ inputs.path }}
+        echo "--status ${{inputs.reliza_build_status}} " > reliza_command
     - id: setup-node-js
       if: ${{ inputs.enable_sbom == 'true' }}
       name: Setup Node JS
