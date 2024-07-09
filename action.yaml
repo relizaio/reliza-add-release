@@ -87,6 +87,8 @@ runs:
       name: Docker Test
       shell: bash
       run: |
+        cd ${{ inputs.path }}
+
         docker pull ${{inputs.image_full_name}}@${{inputs.image_digest}}
         docker save -o image_clone_${{ inputs.reliza_full_version }}.tar ${{inputs.image_full_name}}@${{inputs.image_digest}} 
     - id: install-cdxgen
@@ -102,7 +104,6 @@ runs:
     - name: Submit metadata to Reliza Hub
       shell: bash
       run: |
-        cd ${{ inputs.path }}
         set -x
         set -e
         # Generate SBOMs if Enabled
