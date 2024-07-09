@@ -96,14 +96,10 @@ runs:
       name: Install cdxgen cli
       shell: bash
       run: npm install -g @cyclonedx/cdxgen
-    - id: check_path
-      name: Check Current path
-      shell: bash
-      run: |
-        pwd
     - name: Submit metadata to Reliza Hub
       shell: bash
       run: |
+        cd ${{ inputs.path }}
         set -x
         set -e
         # Generate SBOMs if Enabled
