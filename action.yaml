@@ -145,6 +145,7 @@ runs:
     - name: Fail build if reliza status is rejected
       shell: bash
       run: |
+        cd ${{ inputs.path }}
         status_complete_check=$(cat reliza_command | grep 'status complete' | wc -l)
         if [[ "$status_complete_check" != "1" ]]
         then
