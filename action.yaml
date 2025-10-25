@@ -67,8 +67,9 @@ runs:
     - name: Instantiate Reliza status
       shell: bash
       run: |
+        mkdir -p /tmp/reliza
         cd ${{ inputs.path }}
-        echo "--status ${{inputs.reliza_build_status}} " > reliza_command
+        echo "--status ${{inputs.reliza_build_status}} " > /tmp/reliza/reliza_command
     - id: setup-node-js
       if: ${{ inputs.enable_sbom == 'true' }}
       name: Setup Node JS
@@ -101,7 +102,7 @@ runs:
       if: ${{ inputs.enable_sbom == 'true' }}
       name: Install cdxgen cli
       shell: bash
-      run: npm install -g @cyclonedx/cdxgen@10.8.0
+      run: npm install -g @cyclonedx/cdxgen@10.8.0 --ignore-scripts
     - name: Submit metadata to Reliza Hub
       shell: bash
       run: |
@@ -111,43 +112,47 @@ runs:
         then
           cdxgen ./ --project-version ${{ inputs.reliza_full_version }} -o fs.cdx.bom.json
           cdxgen image_clone_${{ inputs.reliza_full_version }}.tar -t docker --project-version ${{ inputs.reliza_full_version }} -o docker.cdx.bom.json
-          echo -n "--artboms container:docker.cdx.bom.json " >> reliza_command
-          echo -n "--fsbom fs.cdx.bom.json " >> reliza_command
+          echo -n "--artboms container:docker.cdx.bom.json " >> /tmp/reliza/reliza_command
+          echo -n "--fsbom fs.cdx.bom.json " >> /tmp/reliza/reliza_command
         fi
         echo -n "-b ${{github.ref_name}} -k ${{ inputs.reliza_api_key }} \
           -i ${{ inputs.reliza_api_id }} -u ${{ inputs.reliza_api_url }} \
-          -v ${{ inputs.reliza_full_version }} " >> reliza_command
-        echo -n "--artid ${{inputs.image_full_name}} " >> reliza_command
-        echo -n "--artbuildid github${{github.action}}${{github.sha}} " >> reliza_command
-        echo -n "--artbuilduri https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} " >> reliza_command
-        echo -n "--artcimeta GitHub Actions " >> reliza_command
-        echo -n "--arttype ${{inputs.artifact_type}} " >> reliza_command
+          -v ${{ inputs.reliza_full_version }} " >> /tmp/reliza/reliza_command
+        echo -n "--artid ${{inputs.image_full_name}} " >> /tmp/reliza/reliza_command
+        echo -n "--artbuildid github${{github.action}}${{github.sha}} " >> /tmp/reliza/reliza_command
+        echo -n "--artbuilduri https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} " >> /tmp/reliza/reliza_command
+        echo -n "--artcimeta GitHub Actions " >> /tmp/reliza/reliza_command
+        echo -n "--arttype ${{inputs.artifact_type}} " >> /tmp/reliza/reliza_command
         if [[ ${{inputs.image_digest}} != "" ]]
         then
-          echo -n "--artdigests ${{inputs.image_digest}} " >> reliza_command
+          echo -n "--artdigests ${{inputs.image_digest}} " >> /tmp/reliza/reliza_command
         fi
         if [ ! -z ${{inputs.commit_list}} ]
         then
-          echo -n "--commits ${{inputs.commit_list}} " >> reliza_command
+          echo -n "--commits ${{inputs.commit_list}} " >> /tmp/reliza/reliza_command
         fi
         if [ ! -z ${{inputs.reliza_project_id}} ]
         then
-          echo -n "--project ${{inputs.reliza_project_id}} " >> reliza_command
+          echo -n "--project ${{inputs.reliza_project_id}} " >> /tmp/reliza/reliza_command
         fi
-        echo -n "--datestart ${{inputs.reliza_build_start}} " >> reliza_command
-        echo -n "--dateend $(date -Iseconds) " >> reliza_command
+        echo -n "--datestart ${{inputs.reliza_build_start}} " >> /tmp/reliza/reliza_command
+        echo -n "--dateend $(date -Iseconds) " >> /tmp/reliza/reliza_command
         # debug
-        cat reliza_command
+        cat /tmp/reliza/reliza_command
         # send data
-        echo reliza-cli addrelease $(cat reliza_command) > rlz_cmd_exec
-        eval $(cat rlz_cmd_exec)
+        echo reliza-cli addrelease $(cat /tmp/reliza/reliza_command) > /tmp/reliza/rlz_cmd_exec
+        eval $(cat /tmp/reliza/rlz_cmd_exec)
     - name: Fail build if reliza status is rejected
       shell: bash
       run: |
         cd ${{ inputs.path }}
-        status_complete_check=$(cat reliza_command | grep 'status complete' | wc -l)
+        status_complete_check=$(cat /tmp/reliza/reliza_command | grep 'status complete' | wc -l)
         if [[ "$status_complete_check" != "1" ]]
         then
           echo "Failing build since Reliza build Status is rejected"
           exit 1
         fi
+post:
+  shell: bash
+  run: |
+    rm -rf /tmp/reliza/*
